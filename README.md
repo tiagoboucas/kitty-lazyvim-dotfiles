@@ -1,15 +1,15 @@
 # dotfiles
 
-Config do kitty e do LazyVim (Neovim).
+kitty and LazyVim (Neovim) config.
 
-## Instalar noutra máquina
+## Install on another machine
 
 ```sh
-git clone <este-repo> ~/dotfiles
+git clone <this-repo> ~/dotfiles
 ~/dotfiles/install.sh
 ```
 
-## Dependências
+## Dependencies
 
 ```sh
 brew install kitty neovim ripgrep fd lazygit

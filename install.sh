@@ -1,5 +1,5 @@
 #!/bin/sh
-# Cria os symlinks de ~/.config para este repo.
+# Symlink ~/.config entries to this repo.
 set -e
 DOTS="$(cd "$(dirname "$0")" && pwd)"
 
@@ -13,4 +13,4 @@ for f in init.lua lazy-lock.json lazyvim.json lua stylua.toml; do
   ln -sfn "$DOTS/nvim/$f" ~/.config/nvim/"$f"
 done
 
-echo "ok — symlinks criados"
+echo "ok — symlinks created"
