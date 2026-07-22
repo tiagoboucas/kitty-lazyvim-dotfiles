@@ -1,11 +1,12 @@
-# Custom kitty tab bar: powerline (slanted) style + a close "✕" icon on each tab.
+# Custom kitty tab bar: powerline (slanted) style + a clickable close "✕" icon.
 #
-# Replicates kitty's built-in `draw_tab_with_powerline` and inserts a close
-# glyph after the tab title. Enabled via `tab_bar_style custom` in kitty.conf.
+# kitty's built-in tab-bar mouse handling is hardcoded (left-click = activate,
+# middle-click = close) and a custom draw_tab cannot register click regions.
+# So this module ALSO monkeypatches TabManager.handle_tab_bar_mouse to make a
+# left-click on the drawn ✕ close that tab. We record the cell each tab's ✕
+# occupies while drawing, and consult that map when a click arrives.
 #
-# Note: kitty routes all tab-bar clicks to "activate that tab", so the ✕ is a
-# visual affordance, not a click target. Close the active tab with cmd+w
-# (macOS default) or map your own key to `close_tab`.
+# Enabled via `tab_bar_style custom` in kitty.conf.
 
 from kitty.tab_bar import (
     DrawData,
@@ -18,6 +19,9 @@ from kitty.tab_bar import (
 from kitty.fast_data_types import Screen
 
 CLOSE_GLYPH = '✕'
+
+# tab_id -> (first_cell, last_cell) that the "✕" (and its leading space) occupy.
+_close_cells: 'dict[int, tuple[int, int]]' = {}
 
 
 def draw_tab(
@@ -62,8 +66,11 @@ def draw_tab(
             screen.draw('…')
 
     # Close icon, drawn in a muted grey so it reads as a subtle button.
+    # Record the cells it occupies (leading space + glyph) so a click here closes.
+    close_start = screen.cursor.x
     screen.cursor.fg = as_rgb(0x808080)
     screen.draw(f' {CLOSE_GLYPH}')
+    _close_cells[tab.tab_id] = (close_start, screen.cursor.x - 1)
     screen.cursor.fg = tab_fg
 
     if not needs_soft_separator:
@@ -87,3 +94,41 @@ def draw_tab(
     if end < screen.columns:
         screen.draw(' ')
     return end
+
+
+# --- Make the ✕ clickable: patch the (otherwise hardcoded) mouse handler. -----
+
+def _install_close_click_handler() -> None:
+    from kitty.tabs import TabManager, set_tab_being_dragged, get_boss
+    from kitty.fast_data_types import GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, GLFW_RELEASE
+
+    if getattr(TabManager.handle_tab_bar_mouse, '_close_icon_patched', False):
+        return
+    _orig = TabManager.handle_tab_bar_mouse
+
+    def handle_tab_bar_mouse(self, x, y, button, modifiers, action):
+        if button == GLFW_MOUSE_BUTTON_LEFT and action in (GLFW_PRESS, GLFW_RELEASE):
+            try:
+                tb = self.tab_bar
+                if getattr(tb, 'laid_out_once', False) and not getattr(tb, 'vertical', False):
+                    cell = int((x - tb.window_geometry.left) // (tb.cell_width or 1))
+                    tab_id = tb.tab_id_at(x)
+                    rng = _close_cells.get(tab_id)
+                    if tab_id > 0 and rng and rng[0] <= cell <= rng[1]:
+                        # Consume both press and release over the ✕ so it never
+                        # activates or starts a drag; close on release.
+                        if action == GLFW_RELEASE:
+                            tab = self.tab_for_id(tab_id)
+                            if tab is not None:
+                                set_tab_being_dragged()
+                                get_boss().close_tab(tab)
+                        return
+            except Exception:
+                pass  # fall through to default handling on any surprise
+        return _orig(self, x, y, button, modifiers, action)
+
+    handle_tab_bar_mouse._close_icon_patched = True
+    TabManager.handle_tab_bar_mouse = handle_tab_bar_mouse
+
+
+_install_close_click_handler()
