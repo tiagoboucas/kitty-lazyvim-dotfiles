@@ -110,11 +110,13 @@ def _install_close_click_handler() -> None:
         if button == GLFW_MOUSE_BUTTON_LEFT and action in (GLFW_PRESS, GLFW_RELEASE):
             try:
                 tb = self.tab_bar
-                if getattr(tb, 'laid_out_once', False) and not getattr(tb, 'vertical', False):
-                    cell = int((x - tb.window_geometry.left) // (tb.cell_width or 1))
-                    tab_id = tb.tab_id_at(x)
+                g = getattr(tb, 'window_geometry', None)
+                if getattr(tb, 'laid_out_once', False) and g is not None:
+                    # Same pixel->cell mapping kitty's own tab_id_at uses.
+                    cell_x = int((x - g.left) // (tb.cell_width or 1))
+                    tab_id = tb.tab_id_at(x, y)  # NB: takes BOTH x and y
                     rng = _close_cells.get(tab_id)
-                    if tab_id > 0 and rng and rng[0] <= cell <= rng[1]:
+                    if tab_id > 0 and rng and rng[0] <= cell_x <= rng[1]:
                         # Consume both press and release over the ✕ so it never
                         # activates or starts a drag; close on release.
                         if action == GLFW_RELEASE:
