@@ -59,6 +59,8 @@ brew "python@3.9"
 brew "redis", restart_service: :changed
 # Search tool like grep and The Silver Searcher
 brew "ripgrep"
+# Send macOS notifications from the command-line (used by scripts/claude-notify.sh)
+brew "terminal-notifier"
 # Command-line tool for sharing terminal over the web
 brew "ttyd"
 # UNIX shell (command interpreter)

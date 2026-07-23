@@ -3,8 +3,10 @@
 # Claude Code pipes JSON on stdin (hook_event_name, message, cwd, ...).
 # Wired up in ~/.claude/settings.json (Notification and Stop events).
 
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+
 INPUT=$(cat)
-JQ=/opt/homebrew/bin/jq
+JQ=jq
 
 EVENT=$(printf '%s' "$INPUT" | "$JQ" -r '.hook_event_name // empty' 2>/dev/null)
 MESSAGE=$(printf '%s' "$INPUT" | "$JQ" -r '.message // empty' 2>/dev/null)

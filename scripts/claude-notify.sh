@@ -2,6 +2,8 @@
 # macOS notification helper - shows tab details and message content
 # Usage: claude-notify.sh "Title" "Message"
 
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin"
+
 TITLE="${1:-New Message}"
 MESSAGE="${2}"
 
@@ -10,7 +12,7 @@ MESSAGE="${2}"
 # waiting on the tty (e.g. when called from a Claude Code hook).
 if [ -n "$KITTY_WINDOW_ID" ] && command -v kitten &>/dev/null; then
   TAB_INFO=$(kitten @ ls 2>/dev/null </dev/null \
-    | /opt/homebrew/bin/jq -r '.[].tabs[] | select(.is_active) | .title' 2>/dev/null \
+    | jq -r '.[].tabs[] | select(.is_active) | .title' 2>/dev/null \
     | head -1)
   if [ -n "$TAB_INFO" ]; then
     TITLE="$TAB_INFO — $TITLE"
@@ -45,7 +47,7 @@ ring_bell() {
       [ -n "$sock" ] && to=(--to "unix:$sock")
     fi
     pid=$(kitten @ "${to[@]}" ls 2>/dev/null </dev/null \
-      | /opt/homebrew/bin/jq -r --argjson id "$KITTY_WINDOW_ID" \
+      | jq -r --argjson id "$KITTY_WINDOW_ID" \
           '.[].tabs[].windows[] | select(.id == $id) | .pid' 2>/dev/null | head -1)
     if [ -n "$pid" ]; then
       tty=$(ps -o tty= -p "$pid" 2>/dev/null | tr -d ' ')
@@ -60,7 +62,7 @@ ring_bell
 # -activate focuses kitty when the notification is clicked.
 # NOTE: do NOT use -sender net.kovidgoyal.kitty — it hangs forever because
 # kitty has no macOS notification authorization of its own.
-/opt/homebrew/bin/terminal-notifier \
+terminal-notifier \
   -title "$TITLE" \
   -message "$DISPLAY_MSG" \
   -sound "Glass" \
