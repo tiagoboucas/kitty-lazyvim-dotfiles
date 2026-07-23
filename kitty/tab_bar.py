@@ -24,6 +24,7 @@ from kitty.tab_bar import (
     powerline_symbols,
 )
 from kitty.fast_data_types import Screen
+from kitty.utils import log_error
 
 CLOSE_GLYPH = '✕'
 
@@ -133,7 +134,10 @@ def _install_close_click_handler() -> None:
                 if getattr(tb, 'laid_out_once', False) and g is not None:
                     # Same pixel->cell mapping kitty's own tab_id_at uses.
                     cell_x = int((x - g.left) // (tb.cell_width or 1))
-                    tab_id = tb.tab_id_at(int(x))
+                    # tab_id_at takes x AND y (pixels). Passing only x raises
+                    # TypeError, which used to be swallowed below — the ✕ then
+                    # silently did nothing. See the signature assert at the end.
+                    tab_id = tb.tab_id_at(int(x), int(y))
                     # Look the registry up at call time (never a stale closure).
                     rng = getattr(_ktb, '_custom_close_cells', {}).get(tab_id)
                     if tab_id > 0 and rng and rng[0] <= cell_x <= rng[1]:
@@ -145,8 +149,10 @@ def _install_close_click_handler() -> None:
                                 set_tab_being_dragged()
                                 get_boss().close_tab(tab)
                         return
-            except Exception:
-                pass  # fall through to default handling on any surprise
+            except Exception as e:
+                # Fall through to default handling, but say so — a silent pass
+                # here is how the tab_id_at signature break went unnoticed.
+                log_error(f'tab_bar.py: close-icon click failed: {e!r}')
         return _orig(self, x, y, button, modifiers, action)
 
     TabManager.handle_tab_bar_mouse = handle_tab_bar_mouse
@@ -205,3 +211,18 @@ def _install_drag_fixes() -> None:
 
 _install_close_click_handler()
 _install_drag_fixes()
+
+
+# The close icon depends on kitty-internal signatures, so pin the one that
+# already broke once. Runs at config load; `kitty +runpy tab_bar.py` to check
+# manually after a kitty upgrade.
+def _check_api() -> None:
+    import inspect
+
+    from kitty.tab_bar import TabBar
+    params = list(inspect.signature(TabBar.tab_id_at).parameters)
+    assert params[:3] == ['self', 'x', 'y'], \
+        f'kitty changed TabBar.tab_id_at{tuple(params)} — close icon needs updating'
+
+
+_check_api()
