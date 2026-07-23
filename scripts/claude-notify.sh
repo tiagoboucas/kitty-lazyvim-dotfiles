@@ -27,6 +27,36 @@ else
   DISPLAY_MSG="New message received"
 fi
 
+# Ring the kitty bell in the tab this session lives in, so the tab shows the
+# 🔔 (bell_on_tab) and the window/dock alert (window_alert_on_bell) fires.
+# 1st try: our controlling terminal IS that tab's pty (hooks run inside it).
+# Fallback: resolve the tab's tty via kitty remote control + ps.
+ring_bell() {
+  if { printf '\a' > /dev/tty; } 2>/dev/null; then
+    return
+  fi
+  if [ -n "$KITTY_WINDOW_ID" ] && command -v kitten &>/dev/null; then
+    local pid tty sock
+    local -a to=()
+    # kitten @ uses $KITTY_LISTEN_ON automatically; for sessions started
+    # before listen_on was configured, fall back to the newest socket.
+    if [ -z "$KITTY_LISTEN_ON" ]; then
+      sock=$(ls -t /tmp/mykitty-* 2>/dev/null | head -1)
+      [ -n "$sock" ] && to=(--to "unix:$sock")
+    fi
+    pid=$(kitten @ "${to[@]}" ls 2>/dev/null </dev/null \
+      | /opt/homebrew/bin/jq -r --argjson id "$KITTY_WINDOW_ID" \
+          '.[].tabs[].windows[] | select(.id == $id) | .pid' 2>/dev/null | head -1)
+    if [ -n "$pid" ]; then
+      tty=$(ps -o tty= -p "$pid" 2>/dev/null | tr -d ' ')
+      if [ -n "$tty" ] && [ "$tty" != "??" ]; then
+        printf '\a' > "/dev/$tty" 2>/dev/null
+      fi
+    fi
+  fi
+}
+ring_bell
+
 # -activate focuses kitty when the notification is clicked.
 # NOTE: do NOT use -sender net.kovidgoyal.kitty — it hangs forever because
 # kitty has no macOS notification authorization of its own.

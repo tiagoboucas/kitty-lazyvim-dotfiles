@@ -28,7 +28,15 @@ from kitty.fast_data_types import Screen
 CLOSE_GLYPH = '✕'
 
 # tab_id -> (first_cell, last_cell) that the "✕" (and its leading space) occupy.
-_close_cells: 'dict[int, tuple[int, int]]' = {}
+# IMPORTANT: kitty loads this file with runpy.run_path, which re-executes it
+# with FRESH globals on every config reload — but the mouse-handler patch is
+# only installed once and closes over the dict from the first run. Anchor the
+# registry on the stable kitty.tab_bar module so every re-execution (and the
+# originally installed handler) share the same dict.
+import kitty.tab_bar as _ktb
+
+_close_cells: 'dict[int, tuple[int, int]]' = getattr(_ktb, '_custom_close_cells', None) or {}
+_ktb._custom_close_cells = _close_cells
 
 
 def draw_tab(
@@ -109,9 +117,13 @@ def _install_close_click_handler() -> None:
     from kitty.tabs import TabManager, set_tab_being_dragged, get_boss
     from kitty.fast_data_types import GLFW_MOUSE_BUTTON_LEFT, GLFW_PRESS, GLFW_RELEASE
 
-    if getattr(TabManager.handle_tab_bar_mouse, '_close_icon_patched', False):
-        return
-    _orig = TabManager.handle_tab_bar_mouse
+    # Anchor the pristine original on the class so re-running this file (kitty
+    # re-executes it on every config reload) reinstalls a fresh handler without
+    # ever stacking wrappers.
+    _orig = getattr(TabManager, '_close_icon_orig_handler', None)
+    if _orig is None:
+        _orig = TabManager.handle_tab_bar_mouse
+        TabManager._close_icon_orig_handler = _orig
 
     def handle_tab_bar_mouse(self, x, y, button, modifiers, action):
         if button == GLFW_MOUSE_BUTTON_LEFT and action in (GLFW_PRESS, GLFW_RELEASE):
@@ -122,7 +134,8 @@ def _install_close_click_handler() -> None:
                     # Same pixel->cell mapping kitty's own tab_id_at uses.
                     cell_x = int((x - g.left) // (tb.cell_width or 1))
                     tab_id = tb.tab_id_at(int(x))
-                    rng = _close_cells.get(tab_id)
+                    # Look the registry up at call time (never a stale closure).
+                    rng = getattr(_ktb, '_custom_close_cells', {}).get(tab_id)
                     if tab_id > 0 and rng and rng[0] <= cell_x <= rng[1]:
                         # Consume both press and release over the ✕ so it never
                         # activates or starts a drag; close on release.
@@ -136,7 +149,6 @@ def _install_close_click_handler() -> None:
                 pass  # fall through to default handling on any surprise
         return _orig(self, x, y, button, modifiers, action)
 
-    handle_tab_bar_mouse._close_icon_patched = True
     TabManager.handle_tab_bar_mouse = handle_tab_bar_mouse
 
 
