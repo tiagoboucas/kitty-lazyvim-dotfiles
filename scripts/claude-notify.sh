@@ -59,11 +59,20 @@ ring_bell() {
 }
 ring_bell
 
-# -activate focuses kitty when the notification is clicked.
+# Click action: bring kitty to the front AND focus the exact window this
+# session lives in (-execute wins over -activate, so it does both itself).
 # NOTE: do NOT use -sender net.kovidgoyal.kitty — it hangs forever because
 # kitty has no macOS notification authorization of its own.
+ACTION=(-activate "net.kovidgoyal.kitty")
+if [ -n "$KITTY_WINDOW_ID" ]; then
+  SOCK="${KITTY_LISTEN_ON:-unix:$(ls -t /tmp/mykitty-* 2>/dev/null | head -1)}"
+  if [ "$SOCK" != "unix:" ]; then
+    ACTION=(-execute "open -b net.kovidgoyal.kitty; /opt/homebrew/bin/kitten @ --to '$SOCK' focus-window --match id:$KITTY_WINDOW_ID")
+  fi
+fi
+
 terminal-notifier \
   -title "$TITLE" \
   -message "$DISPLAY_MSG" \
   -sound "Glass" \
-  -activate "net.kovidgoyal.kitty"
+  "${ACTION[@]}"
