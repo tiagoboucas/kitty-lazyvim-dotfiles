@@ -95,3 +95,35 @@
 | `ctrl+shift+Enter` | New window |
 | `ctrl+shift+t` | New tab |
 | `ctrl+shift+l` | Next layout |
+
+## Kitty (terminal)
+
+| Key | Action |
+|---|---|
+| `cmd+t` | New tab (same directory) |
+| `cmd+w` | Close tab |
+| `cmd+]` / `cmd+[` | Next / previous tab |
+| `cmd+1..9` | Go to tab N |
+| `cmd+shift+]` / `cmd+shift+[` | Move tab right / left |
+| `cmd+alt+t` | Rename tab |
+| drag tab | Reorder (never detaches) |
+| click `✕` on tab / middle-click | Close tab |
+| `cmd+d` / `cmd+shift+d` | Split right / down |
+| `cmd+alt+arrows` | Move between splits |
+| `cmd+shift+z` | Zoom split (stack layout) |
+| `cmd+r` | Resize split |
+| `cmd+f` | Search scrollback |
+| `cmd+k` | Clear screen |
+| `cmd+shift+e` | Open a URL from screen (hints) |
+| `cmd+shift+p` | Insert a path from screen (hints) |
+| `cmd+,` / `cmd+shift+r` | Edit / reload config |
+
+## Shell (zsh)
+
+| Key | Action |
+|---|---|
+| `→` | Accept inline autosuggestion |
+| `ctrl+r` | Fuzzy history search (fzf) |
+| `ctrl+t` | Fuzzy file picker (fzf) |
+| `alt+c` | Fuzzy cd (fzf) |
+| `z <name>` | Jump to a frecent directory (zoxide) |

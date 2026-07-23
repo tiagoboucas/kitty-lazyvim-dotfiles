@@ -1,12 +1,19 @@
-# Custom kitty tab bar: powerline (slanted) style + a clickable close "✕" icon.
+# Custom kitty tab bar: powerline (slanted) style + a clickable close "✕" icon,
+# with tab drag-and-drop fixed so it ALWAYS reorders and never accidentally
+# detaches the tab into a new OS window.
 #
-# kitty's built-in tab-bar mouse handling is hardcoded (left-click = activate,
-# middle-click = close) and a custom draw_tab cannot register click regions.
-# So this module ALSO monkeypatches TabManager.handle_tab_bar_mouse to make a
-# left-click on the drawn ✕ close that tab. We record the cell each tab's ✕
-# occupies while drawing, and consult that map when a click arrives.
+# Three patches (kitty 0.47.x):
+#  1. draw_tab             — powerline look + "✕" per tab (records its cells).
+#  2. handle_tab_bar_mouse — left-click on the "✕" closes that tab.
+#  3. Boss.on_drop / on_drag_source_finished — dropping a dragged tab outside
+#     the (one-cell-tall) tab bar used to detach it into a new OS window.
+#     Now the drop coordinates are clamped into the tab bar, so releasing
+#     slightly off the bar still just reorders. Dragging out of the kitty
+#     window entirely is a no-op instead of a detach.
 #
 # Enabled via `tab_bar_style custom` in kitty.conf.
+
+import os
 
 from kitty.tab_bar import (
     DrawData,
@@ -96,7 +103,7 @@ def draw_tab(
     return end
 
 
-# --- Make the ✕ clickable: patch the (otherwise hardcoded) mouse handler. -----
+# --- Patch 2: make the ✕ clickable ------------------------------------------
 
 def _install_close_click_handler() -> None:
     from kitty.tabs import TabManager, set_tab_being_dragged, get_boss
@@ -114,7 +121,7 @@ def _install_close_click_handler() -> None:
                 if getattr(tb, 'laid_out_once', False) and g is not None:
                     # Same pixel->cell mapping kitty's own tab_id_at uses.
                     cell_x = int((x - g.left) // (tb.cell_width or 1))
-                    tab_id = tb.tab_id_at(x, y)  # NB: takes BOTH x and y
+                    tab_id = tb.tab_id_at(int(x))
                     rng = _close_cells.get(tab_id)
                     if tab_id > 0 and rng and rng[0] <= cell_x <= rng[1]:
                         # Consume both press and release over the ✕ so it never
@@ -133,4 +140,56 @@ def _install_close_click_handler() -> None:
     TabManager.handle_tab_bar_mouse = handle_tab_bar_mouse
 
 
+# --- Patch 3: drag a tab = reorder only, never detach ------------------------
+
+def _install_drag_fixes() -> None:
+    from kitty.boss import Boss
+    from kitty.tabs import get_tab_being_dragged, set_tab_being_dragged
+
+    _tab_mime = f'application/net.kovidgoyal.kitty-tab-{os.getpid()}'
+
+    if not getattr(Boss.on_drop, '_tab_drag_patched', False):
+        _orig_on_drop = Boss.on_drop
+
+        def on_drop(self, os_window_id, drop, from_self, x, y):
+            # If a kitty tab is being dropped, clamp the drop point into the
+            # tab bar so kitty reorders instead of detaching to a new window.
+            try:
+                if not isinstance(drop, int) and _tab_mime in drop:
+                    from kitty.fast_data_types import viewport_for_window
+                    tab_bar = viewport_for_window(os_window_id)[1]
+                    if tab_bar.bottom > tab_bar.top and tab_bar.right > tab_bar.left:
+                        x = min(max(x, tab_bar.left), tab_bar.right - 1)
+                        y = min(max(y, tab_bar.top), tab_bar.bottom - 1)
+            except Exception:
+                pass
+            return _orig_on_drop(self, os_window_id, drop, from_self, x, y)
+
+        on_drop._tab_drag_patched = True
+        Boss.on_drop = on_drop
+
+    if not getattr(Boss.on_drag_source_finished, '_tab_drag_patched', False):
+        _orig_finished = Boss.on_drag_source_finished
+
+        def on_drag_source_finished(self, was_dropped, was_canceled, accepted_mime_type,
+                                    action, data, needs_toplevel_on_wayland):
+            # Tab drag ended outside any kitty window: clean up, do NOT detach.
+            try:
+                tab_id = int((data or {}).get(_tab_mime, b'0').decode())
+                if tab_id and get_tab_being_dragged()[0] == tab_id:
+                    set_tab_being_dragged()
+                    for tm in self.all_tab_managers:
+                        tm.on_tab_drop_move()
+                        tm.layout_tab_bar()
+                    return
+            except Exception:
+                pass
+            return _orig_finished(self, was_dropped, was_canceled, accepted_mime_type,
+                                  action, data, needs_toplevel_on_wayland)
+
+        on_drag_source_finished._tab_drag_patched = True
+        Boss.on_drag_source_finished = on_drag_source_finished
+
+
 _install_close_click_handler()
+_install_drag_fixes()
