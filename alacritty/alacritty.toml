@@ -8,21 +8,10 @@ general.import = ["~/.config/alacritty/themes/tokyo-night.toml"]
 [env]
 TERM = "xterm-256color"
 
-# ---------------------------------------------------------------------------
-# Blue text override — same trick the kitty setup used (kitty.conf: foreground
-# / color7 / color15 forced to blue). Tokyo Night's foreground is a grey-lavender
-# (#a9b1d6) and ANSI "white" is grey, so Claude Code and other apps that print
-# in the default / white colour lost the blue. These 3 keys win over the import.
-# Delete this block for Tokyo Night's original grey foreground.
-# ---------------------------------------------------------------------------
-[colors.primary]
-foreground = "#82aaff"
-
-[colors.normal]
-white = "#82aaff"
-
-[colors.bright]
-white = "#a3c0ff"
+# Colours come entirely from themes/tokyo-night.toml, which is 1:1 with
+# basecamp/omarchy → themes/tokyo-night/colors.toml. (Earlier there was a blue
+# foreground / white / bright-white override here — removed so the text matches
+# a real Omarchy terminal.)
 
 [terminal]
 osc52 = "CopyPaste"

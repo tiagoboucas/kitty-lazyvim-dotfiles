@@ -27,13 +27,13 @@ font-thicken = true
 # font-feature = -liga
 
 # --------------------------------------------------------------------------
-# Colours — Omarchy Tokyo Night (ported 1:1 from the Alacritty theme).
-# palette 7 (white) and 15 (bright white) + foreground are forced to blue,
-# the same override the kitty/Alacritty configs use so Claude Code and other
-# apps that print in the default / "white" colour come out blue.
+# Colours — Omarchy "Tokyo Night", 1:1 with
+# basecamp/omarchy → themes/tokyo-night/colors.toml. foreground / white (7) /
+# bright white (15) are the Omarchy greys, NOT the old blue override, so the
+# text matches a real Omarchy terminal (and Claude Code via dark-ansi).
 # --------------------------------------------------------------------------
 background = 1a1b26
-foreground = 82aaff
+foreground = a9b1d6
 
 cursor-color = c0caf5
 cursor-text = 1a1b26
@@ -47,7 +47,7 @@ palette = 3=#e0af68
 palette = 4=#7aa2f7
 palette = 5=#ad8ee6
 palette = 6=#449dab
-palette = 7=#82aaff
+palette = 7=#787c99
 palette = 8=#444b6a
 palette = 9=#ff7a93
 palette = 10=#b9f27c
@@ -55,7 +55,7 @@ palette = 11=#ff9e64
 palette = 12=#7da6ff
 palette = 13=#bb9af7
 palette = 14=#0db9d7
-palette = 15=#a3c0ff
+palette = 15=#acb0d0
 
 # --------------------------------------------------------------------------
 # Window

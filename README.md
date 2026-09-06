@@ -46,12 +46,13 @@ Guaranteed identical on any machine by things that are all version-controlled:
 3. `install.sh` → `defaults write org.alacritty AppleFontSmoothing -int 2` (the
    Alacritty equivalent of `font-thicken` — 0 thinnest … 3 heaviest)
 
-## Blue text
+## Colours
 
-Not stock Tokyo Night. Both terminal configs force `foreground` / ANSI white
-(7) / bright white (15) to `#82aaff` / `#a3c0ff` so Claude Code and anything
-printing in the default / "white" colour comes out blue. Delete those keys for
-the stock grey.
+`ghostty/config` and `alacritty/themes/tokyo-night.toml` both carry the Omarchy
+"Tokyo Night" palette **1:1** with `basecamp/omarchy` →
+`themes/tokyo-night/colors.toml` (fg `#a9b1d6`, bg `#1a1b26`, the 16 ANSI
+colours). No overrides — the text matches a real Omarchy terminal, and Claude
+Code inherits it via `dark-ansi`.
 
 ## Tabs
 
