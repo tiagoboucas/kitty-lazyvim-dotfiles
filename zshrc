@@ -1,145 +1,125 @@
-# If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+export PATH="$HOME/.cargo/bin:$PATH"
+# p10k instant prompt disabled: starship owns the prompt
 
-# Path to your oh-my-zsh installation.
+# ---------------------------------------------------------------------------
+# tmux = Alacritty's tab bar. Alacritty has no tabs of its own, so every
+# interactive Alacritty window drops straight into its own tmux session
+# (independent set of tabs per window). Prefix Ctrl-Space, then `c` for a new
+# tab. Set NO_AUTO_TMUX=1 to skip.
+# ---------------------------------------------------------------------------
+if [ -z "$NO_AUTO_TMUX" ] && [ -n "$ALACRITTY_WINDOW_ID" ] && [ -z "$TMUX" ] \
+   && command -v tmux >/dev/null 2>&1; then
+  exec tmux new-session
+fi
+
+# Path to Oh My Zsh
 export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME=""  # prompt comes from starship
 
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time oh-my-zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME=""  # disabled (using starship instead)
-
-# Set list of themes to pick from when loading at random
-# Setting this variable when ZSH_THEME=random will cause zsh to load
-# a theme from this variable instead of looking in $ZSH/themes/
-# If set to an empty array, this variable will have no effect.
-# ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
-
-# Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
-
-# Uncomment the following line to use hyphen-insensitive completion.
-# Case-sensitive completion must be off. _ and - will be interchangeable.
-# HYPHEN_INSENSITIVE="true"
-
-# Uncomment one of the following lines to change the auto-update behavior
-# zstyle ':omz:update' mode disabled  # disable automatic updates
-# zstyle ':omz:update' mode auto      # update automatically without asking
-# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
-
-# Uncomment the following line to change how often to auto-update (in days).
-# zstyle ':omz:update' frequency 13
-
-# Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS="true"
-
-# Uncomment the following line to disable colors in ls.
-# DISABLE_LS_COLORS="true"
-
-# Uncomment the following line to disable auto-setting terminal title.
-# DISABLE_AUTO_TITLE="true"
-
-# Uncomment the following line to enable command auto-correction.
-# ENABLE_CORRECTION="true"
-
-# Uncomment the following line to display red dots whilst waiting for completion.
-# You can also set it to another string to have that shown instead of the default red dots.
-# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
-# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
-# COMPLETION_WAITING_DOTS="true"
-
-# Uncomment the following line if you want to disable marking untracked files
-# under VCS as dirty. This makes repository status check for large repositories
-# much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# You can set one of the optional three formats:
-# "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
-# or set a custom format using the strftime function format specifications,
-# see 'man strftime' for details.
-# HIST_STAMPS="mm/dd/yyyy"
-
-# Would you like to use another custom folder than $ZSH/custom?
-# ZSH_CUSTOM=/path/to/new-custom-folder
-
-# Which plugins would you like to load?
-# Standard plugins can be found in $ZSH/plugins/
-# Custom plugins may be added to $ZSH_CUSTOM/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-# nota: "z" e "zoxide" saíram daqui — o zoxide é iniciado em baixo via eval,
-# e o plugin "z" entrava em conflito com o comando z do zoxide.
+# "z"/"zoxide" left out on purpose — zoxide is started below via eval, and the
+# "z" plugin conflicted with zoxide's own z command.
 plugins=(git macos colorize web-search)
 
 source $ZSH/oh-my-zsh.sh
 
-# User configuration
+# ---------------------------------------------------------------------------
+# Aliases (from my-confs/terminal)
+# ---------------------------------------------------------------------------
 
-# export MANPATH="/usr/local/man:$MANPATH"
+# Git basics
+alias gs='git status -sb'
+alias ga='git add -A'
+alias gc='git commit'
+alias gcm='git commit -m'
+alias gp='git push'
+alias gpl='git pull --rebase'
 
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
+# Logs
+alias gl='git log --oneline --decorate'
+alias glg='git log --oneline --graph --decorate --all'
 
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
+# Branches
+alias gb='git branch'
+alias gbd='git branch -d'
+alias gco='git checkout'
+alias gcb='git checkout -b'
 
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
+# Fixes & undo
+alias gfix='git commit --amend --no-edit'
+alias gundo='git reset --soft HEAD~1'
 
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
+# Cleanups
+alias gprune='git fetch --prune'
+alias gclean='git branch --merged | grep -v "\*\|main\|master\|develop" | xargs git branch -d'
 
-. /opt/homebrew/opt/asdf/libexec/asdf.sh
+# Power moves
+alias gpush='git push -u origin $(git branch --show-current)'
+alias gempty='git commit --allow-empty -m "empty" && git push'
 
-alias kopi2='cd Documents/kopi-2'
-alias viper='cd Documents/viper'
+# eza replaces ls — colorized, icons, git state
+alias ls='eza -lh --group-directories-first --icons=auto'
+alias lsa='ls -a'
+alias lt='eza --tree --level=2 --long --icons --git'
 
-# Notifications
+# Personal shortcuts
+alias kopi2='cd ~/Documents/kopi-2'
+alias viper='cd ~/Documents/viper'
 alias notify="~/dotfiles/scripts/claude-notify.sh"
 alias msg="~/dotfiles/scripts/claude-notify.sh 'New Message' 'You have a new message'"
 
-eval "$(direnv hook zsh)"
+# ---------------------------------------------------------------------------
+# Environment
+# ---------------------------------------------------------------------------
 
+# bat follows the terminal's ANSI palette instead of its own theme
+export BAT_THEME=ansi
+
+# man pages through bat with syntax highlighting
+export MANROFFOPT="-c"
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"
+
+# ---------------------------------------------------------------------------
+# PATH / toolchains
+# ---------------------------------------------------------------------------
+
+[ -d "$HOME/.antigravity-ide/antigravity-ide/bin" ] && export PATH="$HOME/.antigravity-ide/antigravity-ide/bin:$PATH"
+[ -d "$HOME/.codeium/windsurf/bin" ]               && export PATH="$HOME/.codeium/windsurf/bin:$PATH"
+[ -d "$HOME/.kimi-code/bin" ]                      && export PATH="$HOME/.kimi-code/bin:$PATH"
+[ -d "$HOME/.opencode/bin" ]                       && export PATH="$HOME/.opencode/bin:$PATH"
+
+# nvm
 export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
 # pnpm
-export PNPM_HOME="/Users/tiago/Library/pnpm"
+export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME/bin:"*) ;;
   *) export PATH="$PNPM_HOME/bin:$PATH" ;;
 esac
-# pnpm end
 
-# Added by Antigravity IDE
-export PATH="/Users/tiago/.antigravity-ide/antigravity-ide/bin:$PATH"
+# cargo
+[ -s "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
 
-# Added by Devin
-export PATH="/Users/tiago/.codeium/windsurf/bin:$PATH"
+# Android / RN toolchain
+if [ -d "$HOME/Library/Android/sdk" ]; then
+  export ANDROID_HOME="$HOME/Library/Android/sdk"
+  export PATH="$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+fi
+[ -d "/Applications/Android Studio.app/Contents/jbr/Contents/Home" ] && \
+  export JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home"
 
-# Starship prompt (modern shell prompt with git status)
-eval "$(starship init zsh)"
+# ---------------------------------------------------------------------------
+# Tools
+# ---------------------------------------------------------------------------
 
-# Zoxide (smart cd with history)
-eval "$(zoxide init zsh)"
+[ -f /opt/homebrew/opt/asdf/libexec/asdf.sh ] && . /opt/homebrew/opt/asdf/libexec/asdf.sh
+command -v direnv >/dev/null && eval "$(direnv hook zsh)"
+command -v zoxide >/dev/null && eval "$(zoxide init zsh)"
+command -v fzf    >/dev/null && source <(fzf --zsh)
 
-# FZF: Ctrl+R (histórico fuzzy), Ctrl+T (ficheiros), Alt+C (cd fuzzy)
-source <(fzf --zsh)
-# Cores Tokyo Night, a condizer com o kitty
+# fzf: Tokyo Night colors
 export FZF_DEFAULT_OPTS="--height 40% --reverse --border \
   --color=fg:#c0caf5,bg:#1a1b26,hl:#7aa2f7 \
   --color=fg+:#c0caf5,bg+:#283457,hl+:#7dcfff \
@@ -147,19 +127,22 @@ export FZF_DEFAULT_OPTS="--height 40% --reverse --border \
   --color=marker:#9ece6a,spinner:#bb9af7,header:#545c7e,border:#414868"
 export FZF_CTRL_R_OPTS="--preview 'echo {}' --preview-window down:3:wrap"
 
-# Histórico melhor: partilhado entre tabs, sem duplicados
+# History: shared between tabs, no dupes
 HISTSIZE=50000
 SAVEHIST=50000
 setopt SHARE_HISTORY HIST_IGNORE_ALL_DUPS HIST_REDUCE_BLANKS HIST_VERIFY
 
-# Autocomplete improvements
+# Completion menu + fzf-tab previews
 zstyle ':completion:*' menu select
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls -1 $realpath'
 zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls -1 $realpath'
 
-# Sugestões automáticas enquanto escreves (aceitar com →)
+# ---------------------------------------------------------------------------
+# Prompt (near the end)
+# ---------------------------------------------------------------------------
+eval "$(starship init zsh)"
+
+# Autosuggestions + syntax highlighting — syntax highlighting must be LAST
 source /opt/homebrew/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-
-# Syntax highlighting na linha de comandos (tem de ser a ÚLTIMA coisa do .zshrc)
 source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

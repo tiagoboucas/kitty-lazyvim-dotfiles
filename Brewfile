@@ -1,7 +1,4 @@
 tap "heroku/brew"
-tap "homebrew/bundle"
-tap "homebrew/cask-fonts"
-tap "homebrew/services"
 tap "shopify/shopify", trusted: { formulae: ["shopify-cli"] }
 # Extendable version manager with support for Ruby, Node.js, Erlang & more
 brew "asdf"
@@ -11,8 +8,12 @@ brew "carthage"
 brew "cloudflared"
 # Cross-platform make
 brew "cmake"
+# Clone of cat(1) with syntax highlighting and Git integration
+brew "bat"
 # Load/unload environment variables based on $PWD
 brew "direnv"
+# Modern, maintained replacement for ls
+brew "eza"
 # Simple, fast and user-friendly alternative to find
 brew "fd"
 # Command-line fuzzy finder written in Go
@@ -61,10 +62,21 @@ brew "redis", restart_service: :changed
 brew "ripgrep"
 # Send macOS notifications from the command-line (used by scripts/claude-notify.sh)
 brew "terminal-notifier"
+# Cross-shell prompt for astronauts
+brew "starship"
 # Command-line tool for sharing terminal over the web
 brew "ttyd"
 # UNIX shell (command interpreter)
 brew "zsh"
+# Fish-like fast/unobtrusive autosuggestions for zsh
+brew "zsh-autosuggestions"
+# Fish shell like syntax highlighting for zsh
+brew "zsh-syntax-highlighting"
+# Shell extension to navigate your filesystem faster
+brew "zoxide"
+# NOTE: Alacritty is NOT installed via brew — Homebrew disabled the cask on
+# 2026-09-01 (fails macOS Gatekeeper). install.sh fetches the official DMG
+# from github.com/alacritty/alacritty/releases instead.
 # Configuration manager for AI coding agents
 cask "cc-switch"
 # Terminal-based AI coding assistant

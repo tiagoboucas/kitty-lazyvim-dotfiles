@@ -1,0 +1,52 @@
+# ~/.config/alacritty/alacritty.toml  (symlinked from ~/dotfiles/alacritty/)
+#
+# Omarchy look on macOS. Colours come from ./themes/tokyo-night.toml.
+# Tabs are provided by tmux (Alacritty has none) — see ~/dotfiles/tmux/tmux.conf.
+
+general.import = ["~/.config/alacritty/themes/tokyo-night.toml"]
+
+[env]
+TERM = "xterm-256color"
+
+[terminal]
+osc52 = "CopyPaste"
+
+# ---------------------------------------------------------------------------
+# Font — pinned so a fresh machine renders identically.
+#   family : FiraCode Nerd Font Mono   (Brewfile: cask "font-fira-code-nerd-font")
+#   size   : 11
+#   weight : Alacritty has no weight knob — the "solid" look is macOS font
+#            smoothing. install.sh runs:
+#              defaults write org.alacritty AppleFontSmoothing -int 2
+#            Change that int (0 = off/thinnest … 3 = heaviest) to adjust weight.
+# FiraCode ships no italic face, so italics render upright by design.
+# ---------------------------------------------------------------------------
+[font]
+size = 11
+normal      = { family = "FiraCode Nerd Font Mono", style = "Regular" }
+bold        = { family = "FiraCode Nerd Font Mono", style = "Bold" }
+italic      = { family = "FiraCode Nerd Font Mono", style = "Regular" }
+bold_italic = { family = "FiraCode Nerd Font Mono", style = "Bold" }
+
+[window]
+padding.x = 14
+# padding.y clears the traffic-light buttons because decorations = "Transparent"
+# tints the title bar with the background colour but keeps it thin.
+padding.y = 32
+decorations = "Transparent"
+decorations_theme_variant = "Dark"
+opacity = 0.88
+blur = true
+option_as_alt = "None"   # hand Option back to macOS so Option+e e -> é works
+
+[keyboard]
+bindings = [
+  # Send Shift+Return / Alt+Shift+Return as CSI-u so TUIs (and tmux) can tell
+  # them apart from a plain Return.
+  { key = "Return", mods = "Shift",     chars = "\u001B[13;2u" },
+  { key = "Return", mods = "Alt|Shift", chars = "\u001B[13;4u" },
+  { key = "Insert", mods = "Shift",   action = "Paste" },
+  { key = "Insert", mods = "Control", action = "Copy"  },
+  # No native tabs — Cmd+N opens another Alacritty window instead.
+  { key = "N", mods = "Command", action = "CreateNewWindow" },
+]
