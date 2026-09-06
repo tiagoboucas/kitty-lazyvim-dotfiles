@@ -67,7 +67,7 @@ palette = 15=#a3c0ff
 # --------------------------------------------------------------------------
 window-padding-x = 14
 window-padding-y = 6
-background-opacity = 0.82
+background-opacity = 0.88
 background-blur = false
 macos-titlebar-style = transparent
 window-theme = dark
