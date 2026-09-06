@@ -77,6 +77,9 @@ brew "zoxide"
 # NOTE: Alacritty is NOT installed via brew — Homebrew disabled the cask on
 # 2026-09-01 (fails macOS Gatekeeper). install.sh fetches the official DMG
 # from github.com/alacritty/alacritty/releases instead.
+# GPU terminal — primary. Working native tabs/splits + proper transparent
+# titlebar (see ghostty/config). Alacritty kept as the fallback.
+cask "ghostty"
 # Configuration manager for AI coding agents
 cask "cc-switch"
 # Terminal-based AI coding assistant

@@ -1,0 +1,97 @@
+# ~/.config/ghostty/config  (symlinked from ~/dotfiles/ghostty/)
+#
+# Ghostty port of the Alacritty setup — Omarchy "Tokyo Night" on macOS,
+# FiraCode Nerd Font Mono @ 11, default text forced to the theme blue.
+# Same palette as ../alacritty/themes/tokyo-night.toml + the blue overrides.
+#
+# Reload after edits: Cmd+Shift+, (or quit + reopen).
+
+# --------------------------------------------------------------------------
+# Font
+#   family : FiraCode Nerd Font Mono   (Brewfile: cask "font-fira-code-nerd-font")
+#   size   : 11
+#   FiraCode ships no italic face — font-style-italic = false keeps italics
+#   upright instead of synthesising a slant (matches the Alacritty setup).
+#   font-thicken replaces Alacritty's `defaults write org.alacritty
+#   AppleFontSmoothing -int 2` — it thickens glyphs for the same "solid" look.
+#   Ligatures: ON by default here (Alacritty can't render them). To match the
+#   old Alacritty look exactly, uncomment the two font-feature lines below.
+# --------------------------------------------------------------------------
+font-family = FiraCode Nerd Font Mono
+font-family-bold = FiraCode Nerd Font Mono
+font-size = 11
+font-style-italic = false
+font-style-bold-italic = false
+font-thicken = true
+# font-feature = -calt
+# font-feature = -liga
+
+# --------------------------------------------------------------------------
+# Colours — Omarchy Tokyo Night (ported 1:1 from the Alacritty theme).
+# palette 7 (white) and 15 (bright white) + foreground are forced to blue,
+# the same override the kitty/Alacritty configs use so Claude Code and other
+# apps that print in the default / "white" colour come out blue.
+# --------------------------------------------------------------------------
+background = 1a1b26
+foreground = 82aaff
+
+cursor-color = c0caf5
+cursor-text = 1a1b26
+selection-foreground = c0caf5
+selection-background = 7aa2f7
+
+palette = 0=#32344a
+palette = 1=#f7768e
+palette = 2=#9ece6a
+palette = 3=#e0af68
+palette = 4=#7aa2f7
+palette = 5=#ad8ee6
+palette = 6=#449dab
+palette = 7=#82aaff
+palette = 8=#444b6a
+palette = 9=#ff7a93
+palette = 10=#b9f27c
+palette = 11=#ff9e64
+palette = 12=#7da6ff
+palette = 13=#bb9af7
+palette = 14=#0db9d7
+palette = 15=#a3c0ff
+
+# --------------------------------------------------------------------------
+# Window
+#   macos-titlebar-style = transparent tints the title bar with the
+#   background colour AND insets the grid below it automatically — the tinted
+#   Omarchy look the Alacritty "Transparent" decoration was after, but without
+#   the text-under-the-titlebar overlap (Ghostty handles the inset itself, so
+#   no padding.y hack).
+# --------------------------------------------------------------------------
+window-padding-x = 14
+window-padding-y = 6
+background-opacity = 0.82
+background-blur = false
+macos-titlebar-style = transparent
+window-theme = dark
+# macos-option-as-alt = false hands Option back to macOS so dead-key accents
+# work: Option+e e -> é, Option+n a -> ã, Option+c -> ç.
+macos-option-as-alt = false
+
+# xterm-256color instead of Ghostty's own xterm-ghostty, so remote hosts
+# without the ghostty terminfo entry still behave (matches the Alacritty env).
+term = xterm-256color
+
+# OSC 52 clipboard read+write (Alacritty: osc52 = "CopyPaste").
+clipboard-read = allow
+clipboard-write = allow
+
+# --------------------------------------------------------------------------
+# Keybindings
+#   Shift+Return / Alt+Shift+Return as CSI-u so TUIs can tell them from a
+#   plain Return. Shift/Ctrl+Insert paste/copy.
+#   Cmd+T / Cmd+N keep Ghostty's defaults (new tab / new window) — Ghostty's
+#   native tabs attach to the focused window, so the Alacritty Cmd+T bug that
+#   forced both onto CreateNewWindow doesn't exist here.
+# --------------------------------------------------------------------------
+keybind = shift+enter=text:\x1b[13;2u
+keybind = alt+shift+enter=text:\x1b[13;4u
+keybind = shift+insert=paste_from_clipboard
+keybind = ctrl+insert=copy_to_clipboard

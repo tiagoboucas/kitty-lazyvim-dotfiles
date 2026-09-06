@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Replicate this Omarchy-flavoured macOS terminal setup on a fresh machine.
-#   - Alacritty (Omarchy Tokyo Night palette, FiraCode Nerd Font Mono @ 11)
+#   - Ghostty — primary terminal (Omarchy Tokyo Night palette, FiraCode Nerd
+#     Font Mono @ 11, native tabs/splits, transparent titlebar)
+#   - Alacritty — same palette/font, kept as a fallback
 #   - tmux providing the "tabs" (Omarchy config)
 #   - starship prompt (Omarchy config)
 #   - Neovim / LazyVim with tokyonight-night
@@ -47,7 +49,10 @@ if [ ! -d "/Applications/Alacritty.app" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-say "Linking Alacritty"
+say "Linking Ghostty (primary terminal)"
+backup_and_link "$DOTS/ghostty/config" "$HOME/.config/ghostty/config"
+
+say "Linking Alacritty (fallback)"
 backup_and_link "$DOTS/alacritty/alacritty.toml"          "$HOME/.config/alacritty/alacritty.toml"
 backup_and_link "$DOTS/alacritty/themes/tokyo-night.toml" "$HOME/.config/alacritty/themes/tokyo-night.toml"
 
@@ -94,4 +99,4 @@ if [ -f "$WALL" ]; then
   killall Dock 2>/dev/null || true
 fi
 
-say "Done. Restart the terminal (or: exec zsh) and open Alacritty."
+say "Done. Restart the terminal (or: exec zsh) and open Ghostty."

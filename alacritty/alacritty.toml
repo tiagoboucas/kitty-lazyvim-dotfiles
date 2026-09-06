@@ -1,12 +1,28 @@
 # ~/.config/alacritty/alacritty.toml  (symlinked from ~/dotfiles/alacritty/)
 #
 # Omarchy look on macOS. Colours come from ./themes/tokyo-night.toml.
-# Tabs are provided by tmux (Alacritty has none) — see ~/dotfiles/tmux/tmux.conf.
+# No tabs — Alacritty has none. `tmux` is installed if you want them manually.
 
 general.import = ["~/.config/alacritty/themes/tokyo-night.toml"]
 
 [env]
 TERM = "xterm-256color"
+
+# ---------------------------------------------------------------------------
+# Blue text override — same trick the kitty setup used (kitty.conf: foreground
+# / color7 / color15 forced to blue). Tokyo Night's foreground is a grey-lavender
+# (#a9b1d6) and ANSI "white" is grey, so Claude Code and other apps that print
+# in the default / white colour lost the blue. These 3 keys win over the import.
+# Delete this block for Tokyo Night's original grey foreground.
+# ---------------------------------------------------------------------------
+[colors.primary]
+foreground = "#82aaff"
+
+[colors.normal]
+white = "#82aaff"
+
+[colors.bright]
+white = "#a3c0ff"
 
 [terminal]
 osc52 = "CopyPaste"
@@ -30,23 +46,34 @@ bold_italic = { family = "FiraCode Nerd Font Mono", style = "Bold" }
 
 [window]
 padding.x = 14
-# padding.y clears the traffic-light buttons because decorations = "Transparent"
-# tints the title bar with the background colour but keeps it thin.
-padding.y = 32
-decorations = "Transparent"
+padding.y = 6
+# "Full" = a normal opaque macOS title bar. Alacritty then insets the grid below
+# the bar automatically, so text can NEVER render under the title bar / tab strip
+# (the recurring overlap). Trade-off vs the old "Transparent": the bar is the
+# standard dark macOS chrome instead of being tinted with the background colour.
+# To go back to the tinted look: decorations = "Transparent" + padding.y = 44
+# (and re-check the top gap after macOS updates).
+decorations = "Full"
 decorations_theme_variant = "Dark"
-opacity = 0.88
-blur = true
+# See-through so the wallpaper reads behind text, but blur OFF — blur is what
+# made it look smeared/distorted. Lower = more wallpaper, higher = more solid.
+opacity = 0.82
+blur = false
 option_as_alt = "None"   # hand Option back to macOS so Option+e e -> é works
 
 [keyboard]
 bindings = [
-  # Send Shift+Return / Alt+Shift+Return as CSI-u so TUIs (and tmux) can tell
+  # Send Shift+Return / Alt+Shift+Return as CSI-u so TUIs can tell
   # them apart from a plain Return.
   { key = "Return", mods = "Shift",     chars = "\u001B[13;2u" },
   { key = "Return", mods = "Alt|Shift", chars = "\u001B[13;4u" },
   { key = "Insert", mods = "Shift",   action = "Paste" },
   { key = "Insert", mods = "Control", action = "Copy"  },
-  # No native tabs — Cmd+N opens another Alacritty window instead.
+  # No native tabs. Alacritty's CreateNewTab (bound to Cmd+T by default) has an
+  # upstream bug: the new tab attaches to the FIRST window, not the focused one,
+  # so Cmd+T after Cmd+N dumps you back in the old window. No config fixes which
+  # window it targets, so both Cmd+N and Cmd+T just open a fresh window that
+  # comes up focused/foreground.
   { key = "N", mods = "Command", action = "CreateNewWindow" },
+  { key = "T", mods = "Command", action = "CreateNewWindow" },
 ]

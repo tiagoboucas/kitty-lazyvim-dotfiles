@@ -1,17 +1,6 @@
 export PATH="$HOME/.cargo/bin:$PATH"
 # p10k instant prompt disabled: starship owns the prompt
 
-# ---------------------------------------------------------------------------
-# tmux = Alacritty's tab bar. Alacritty has no tabs of its own, so every
-# interactive Alacritty window drops straight into its own tmux session
-# (independent set of tabs per window). Prefix Ctrl-Space, then `c` for a new
-# tab. Set NO_AUTO_TMUX=1 to skip.
-# ---------------------------------------------------------------------------
-if [ -z "$NO_AUTO_TMUX" ] && [ -n "$ALACRITTY_WINDOW_ID" ] && [ -z "$TMUX" ] \
-   && command -v tmux >/dev/null 2>&1; then
-  exec tmux new-session
-fi
-
 # Path to Oh My Zsh
 export ZSH="$HOME/.oh-my-zsh"
 ZSH_THEME=""  # prompt comes from starship
