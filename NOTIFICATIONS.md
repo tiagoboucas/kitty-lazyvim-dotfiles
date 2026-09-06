@@ -1,60 +1,68 @@
 # Notifications
 
-Your terminal now has 3 layers of notifications:
+When Claude Code finishes a turn or needs input, you get a macOS notification
+with sound and the tab lights up. Wired through Claude Code hooks →
+`scripts/claude-code-notify.sh` → `scripts/claude-notify.sh`.
 
-## 1. **Desktop Notifications (macOS)**
+## Hooks (`~/.claude/settings.json`)
 
-Script installed: `~/dotfiles/scripts/claude-notify.sh`
-
-### Manual usage:
-```bash
-msg                                          # Quick notification
-notify "Custom Title" "Message content"      # Custom title + message
+```jsonc
+"Stop":         "~/dotfiles/scripts/claude-code-notify.sh"   // Claude finished, your turn
+"Notification": "~/dotfiles/scripts/claude-code-notify.sh"   // Claude is waiting on you
 ```
 
-### Smart features:
-- 📝 **Auto-detects active tab** - shows tab title in notification
-- ✂️ **Message preview** - truncates to 100 chars for readability
-- 🎯 **Click to focus** - clicking notification brings kitty to front
+`claude-code-notify.sh` reads the hook JSON on stdin, turns the event +
+`cwd` into a title (`Claude — <project>` / `Claude needs you — <project>`)
+and message, then calls `claude-notify.sh`.
 
-### Examples:
-```bash
-msg
-notify "Alert" "This is a very long message that will be automatically truncated to fit in the notification nicely"
+## Back-ends (`scripts/claude-notify.sh`)
+
+The helper picks a path from the terminal it's running in:
+
+### Ghostty (primary)
+
+Emits an **OSC 777** desktop notification + a bell to the surface's pty:
+
+```
+\033]777;notify;<title>;<body>\033\\   +   \a
 ```
 
-The notification will show the tab name as title and first 100 chars of message! 🎯
+- Ghostty raises the real macOS notification itself — it has its own
+  notification authorisation, and **clicking the banner focuses the exact
+  surface** that fired it. No `terminal-notifier` involved.
+- The `\a` bell (see `ghostty/config` → `bell-features = audio,attention,title`)
+  plays `Glass.aiff`, flashes the title, and marks the tab/window as needing
+  attention.
+- First run: macOS asks once to allow Ghostty notifications — say yes.
 
----
+### kitty (legacy)
 
-## 2. **Bell & Audio Alerts (Kitty)**
+Rings the kitty bell (`bell_on_tab` shows the 🔔) and fires
+`terminal-notifier` with a click action that runs
+`kitten @ focus-window --match id:$KITTY_WINDOW_ID`.
 
-Automatically configured in `~/.config/kitty/kitty.conf`:
+### Anything else (Alacritty, …)
 
-- 🔔 **Tab alert**: Shows bell when activity detected
-- 📳 **Visual bell**: Screen flashes
-- 🔊 **Audio bell**: "Glass" system sound
-- ⏱️ **Auto-notify**: Automatic notification after 2s of inactivity
+`terminal-notifier` only, `-sound Glass`, click activates the app.
+Alacritty has no notification protocol of its own.
 
----
+If the primary path can't reach `/dev/tty` (hook run without a controlling
+terminal) it falls through to `terminal-notifier`.
 
-## 3. **Terminal Integration (Starship Prompt)**
-
-Real-time git status in prompt when switching directories
-
----
-
-## Setup Complete
-
-Everything is installed! Reload your shell:
+## Manual usage
 
 ```bash
-source ~/.zshrc
+notify "Custom Title" "Message content"   # alias → claude-notify.sh
+msg                                       # quick ping
 ```
 
-Test it:
+(`notify` / `msg` aliases live in `zshrc`.)
+
+## Test
+
 ```bash
-msg
+~/dotfiles/scripts/claude-notify.sh "Test" "hello from the terminal"
 ```
 
-You should see a macOS notification with sound! 🎵
+In Ghostty you should get a banner + Glass + the tab marked for attention;
+clicking the banner jumps back to that surface.

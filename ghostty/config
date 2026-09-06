@@ -84,6 +84,21 @@ clipboard-read = allow
 clipboard-write = allow
 
 # --------------------------------------------------------------------------
+# Bell / notifications — "the terminal talking to you".
+#   desktop-notifications = true (default) lets apps raise a real macOS
+#   notification via OSC 777; Ghostty has its own notification authorisation
+#   (kitty never did), and clicking the banner focuses the surface that
+#   raised it. The Claude Code hook (scripts/claude-notify.sh) emits OSC 777
+#   + a bell.
+#   bell-features: a bell (\a) plays Glass, flashes the title, and marks the
+#   tab/window as needing attention — kitty's audio-bell + bell_on_tab.
+# --------------------------------------------------------------------------
+desktop-notifications = true
+bell-features = audio,attention,title
+bell-audio-path = /System/Library/Sounds/Glass.aiff
+bell-audio-volume = 0.5
+
+# --------------------------------------------------------------------------
 # Keybindings
 #   Shift+Return / Alt+Shift+Return as CSI-u so TUIs can tell them from a
 #   plain Return. Shift/Ctrl+Insert paste/copy.
