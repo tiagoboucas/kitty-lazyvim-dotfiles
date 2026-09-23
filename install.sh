@@ -49,6 +49,9 @@ if [ ! -d "/Applications/Alacritty.app" ]; then
 fi
 
 # ---------------------------------------------------------------------------
+say "Linking WezTerm"
+backup_and_link "$DOTS/wezterm/wezterm.lua" "$HOME/.config/wezterm/wezterm.lua"
+
 say "Linking Ghostty (primary terminal)"
 backup_and_link "$DOTS/ghostty/config" "$HOME/.config/ghostty/config"
 
