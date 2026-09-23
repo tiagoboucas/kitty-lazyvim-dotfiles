@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 # Replicate this Omarchy-flavoured macOS terminal setup on a fresh machine.
+#   - WezTerm — Tokyo Night, FiraCode Nerd Font Mono Medium @ 11, 0.94 opacity
+#     (wezterm/wezterm.lua; cask + font come from the Brewfile)
 #   - Ghostty — primary terminal (Omarchy Tokyo Night palette, FiraCode Nerd
 #     Font Mono @ 11, native tabs/splits, transparent titlebar)
 #   - Alacritty — same palette/font, kept as a fallback

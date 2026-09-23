@@ -80,6 +80,9 @@ brew "zoxide"
 # GPU terminal — primary. Working native tabs/splits + proper transparent
 # titlebar (see ghostty/config). Alacritty kept as the fallback.
 cask "ghostty"
+# Daily terminal: config in wezterm/wezterm.lua (theme, font, opacity, keys).
+# Nightly because that is what the config is written and tested against.
+cask "wezterm@nightly"
 # Configuration manager for AI coding agents
 cask "cc-switch"
 # Terminal-based AI coding assistant
