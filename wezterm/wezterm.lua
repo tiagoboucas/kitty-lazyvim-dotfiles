@@ -131,33 +131,58 @@ config.window_frame = {
 -- ---------------------------------------------------------------------------
 config.send_composed_key_when_left_alt_is_pressed = true
 config.send_composed_key_when_right_alt_is_pressed = true
--- Lets apps that opt in see Cmd (SUPER) chords, e.g. Cmd+C forwarded below.
-config.enable_kitty_keyboard = true
+
+-- Copy that never leaks a stray "c" into the TUI:
+--   Cmd+C  — copy selection if there is one, otherwise swallow the key.
+--   Ctrl+C — copy + clear selection if there is one, otherwise send a real
+--            Ctrl+C (SIGINT / Claude Code's interrupt) as usual.
+-- Claude Code captures the mouse, so to select with WezTerm hold Shift while
+-- dragging (bypass_mouse_reporting_modifiers below).
+local function copy_or(fallback)
+  return wezterm.action_callback(function(window, pane)
+    local sel = window:get_selection_text_for_pane(pane)
+    if sel and sel ~= "" then
+      window:perform_action(act.CopyTo("Clipboard"), pane)
+      window:perform_action(act.ClearSelection, pane)
+    elseif fallback then
+      window:perform_action(fallback, pane)
+    end
+  end)
+end
+
+config.bypass_mouse_reporting_modifiers = "SHIFT"
 
 config.keys = {
+  { key = "c", mods = "CMD", action = copy_or(nil) },
+  { key = "c", mods = "CTRL", action = copy_or(act.SendKey({ key = "c", mods = "CTRL" })) },
+  { key = "v", mods = "CMD", action = act.PasteFrom("Clipboard") },
   { key = "Enter", mods = "SHIFT", action = act.SendString("\x1b[13;2u") },
   { key = "Enter", mods = "ALT|SHIFT", action = act.SendString("\x1b[13;4u") },
   { key = "Insert", mods = "SHIFT", action = act.PasteFrom("Clipboard") },
   { key = "Insert", mods = "CTRL", action = act.CopyTo("Clipboard") },
-  -- Mouse-capturing TUIs (Claude Code fullscreen) own the selection, so WezTerm's
-  -- is empty: forward Cmd+C to the app instead of copying nothing.
-  {
-    key = "c",
-    mods = "SUPER",
-    action = wezterm.action_callback(function(window, pane)
-      if window:get_selection_text_for_pane(pane) ~= "" then
-        window:perform_action(act.CopyTo("Clipboard"), pane)
-      else
-        window:perform_action(act.SendKey({ key = "c", mods = "SUPER" }), pane)
-      end
-    end),
-  },
   { key = "n", mods = "CMD", action = act.SpawnWindow },
   { key = "t", mods = "CMD", action = act.SpawnTab("CurrentPaneDomain") },
   -- Reorder tabs, macOS convention (Cmd+Shift+[ / ])
   { key = "[", mods = "CMD|SHIFT", action = act.MoveTabRelative(-1) },
   { key = "]", mods = "CMD|SHIFT", action = act.MoveTabRelative(1) },
 }
+
+-- ---------------------------------------------------------------------------
+-- Tab width — pad short titles so the close button is never right next to
+-- the click target. Without this, a tab named "zsh" is so narrow that
+-- switching tabs and closing them are the same gesture.
+-- ---------------------------------------------------------------------------
+wezterm.on("format-tab-title", function(tab)
+  local title = tab.active_pane.title
+  local min_chars = 20
+  if #title < min_chars then
+    local pad = min_chars - #title
+    local left = math.floor(pad / 2)
+    local right = pad - left
+    title = string.rep(" ", left) .. title .. string.rep(" ", right)
+  end
+  return title
+end)
 
 -- ---------------------------------------------------------------------------
 -- Misc — match the Alacritty [env] / clipboard behaviour.
